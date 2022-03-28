@@ -11,7 +11,7 @@ from pyzbar import pyzbar
 from PIL import Image
 from datetime import datetime
 
-date_format = '%m/%d/%Y'
+date_format = '%d/%m/%Y'
 time_format = '%H:%M:%S'
 
 class database:
@@ -114,7 +114,11 @@ def photo(message):
     else:
         bot.send_message(message.chat.id, 'Can''t read the QR code, please scan again')
 
-tbl = []
+tbl = ['Contractor Name, Installation Date, Send Location time, Location X, Location Y,'+
+       'Send QR Time, Producer, Product Name, RF Number, Mac Address, Frequency MHz,'+
+       'RF Channel, Production date, Remarks']
+
+
 def update_table(db):
     date = datetime.now().strftime(date_format)
     line = f'{db.user_name},{date}, {db.loc_time},{db.lat},{db.long},{db.qr_time},{db.qr_code}'
