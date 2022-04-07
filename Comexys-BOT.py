@@ -15,6 +15,9 @@ date_format = '%d/%m/%Y'
 time_format = '%H:%M:%S'
 
 class database:
+    d_users = {}
+
+class user_data:
     user_name = ''
     loc_time = '00:00:00'
     lat = 0
@@ -73,30 +76,42 @@ def message_handler(message):
 
 @bot.message_handler(content_types=['location'])
 def handle_location(message):
-    db.user_name = f'{message.chat.first_name} {message.chat.last_name}'
-    db.loc_time = datetime.now().strftime(time_format)
-    db.lat = message.location.latitude
-    db.long = message.location.longitude
-    print(f"Got location : {db.lat}, {db.long}")
+    user_id = message.from_user.id
+    if user_id in db.d_users:
+        ud = db.d_users[user_id]
+    else:
+        ud = db.d_users[user_id] = user_data
+
+    ud.user_name = f'{message.chat.first_name} {message.chat.last_name}'
+    ud.loc_time = datetime.now().strftime(time_format)
+    ud.lat = message.location.latitude
+    ud.long = message.location.longitude
+    print(f"Got location : {ud.lat}, {ud.long}")
 
 
 @bot.message_handler(content_types=['photo'])
 def photo(message):
+    location_needed = True
+    user_id = message.from_user.id
+    if user_id in db.d_users:
+        ud = db.d_users[user_id]
+        time_str = datetime.now().strftime(time_format)
+        tdelta = datetime.strptime(time_str, time_format) - datetime.strptime(ud.loc_time, time_format)
+        if tdelta.seconds < (3 * 60):
+            location_needed = False
 
-    time_str = datetime.now().strftime(time_format)
-    tdelta = datetime.strptime(time_str, time_format) - datetime.strptime(db.loc_time, time_format)
-    if tdelta.seconds > (3 * 60):
+    if location_needed:
         bot.send_message(message.chat.id, "You have to send your location first!", reply_markup=gen_markup2())
         return
 
     fileID = message.photo[-1].file_id
     file_info = bot.get_file(fileID)
     downloaded_file = bot.download_file(file_info.file_path)
-
-    with open("image.jpg", 'wb') as new_file:
+    jpg_file_name = f'{user_id}.jpg'
+    with open(jpg_file_name, 'wb') as new_file:
         new_file.write(downloaded_file)
 
-    with open("image.jpg", 'rb') as image_file:
+    with open(jpg_file_name, 'rb') as image_file:
         image = Image.open(image_file)
         image.load()
 
@@ -107,9 +122,9 @@ def photo(message):
         bot.send_message(message.chat.id, f'QR codes: {codes}' )
         print (f'Got code: {codes}')
         if codes[:7] == 'Comexys':
-            db.qr_code = codes
-            db.qr_time = time_str
-            update_table(db)
+            ud.qr_code = codes
+            ud.qr_time = time_str
+            update_table(ud)
         else:
             bot.send_message(message.chat.id, 'Unknown QR code, scan only Comexys QR code.')
     else:
@@ -120,9 +135,9 @@ tbl = ['Contractor Name, Installation Date, Send Location time, Location X, Loca
        'RF Channel, Production date, Remarks']
 
 
-def update_table(db):
+def update_table(ud):
     date = datetime.now().strftime(date_format)
-    line = f'{db.user_name},{date}, {db.loc_time},{db.lat},{db.long},{db.qr_time},{db.qr_code}'
+    line = f'{ud.user_name},{date}, {ud.loc_time},{ud.lat},{ud.long},{ud.qr_time},{ud.qr_code}'
     tbl.append(line)
 
 
