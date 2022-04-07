@@ -42,7 +42,7 @@ def save_csv(lines):
 
 def gen_markup2():
 
-    reply_markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True,
+    reply_markup = ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True,
                                        row_width=7)
     location_keyboard = KeyboardButton(text="Send location", request_location=True)
    # send_keyboard = KeyboardButton('Send File', request_contact=True)
@@ -77,7 +77,7 @@ def handle_location(message):
     db.loc_time = datetime.now().strftime(time_format)
     db.lat = message.location.latitude
     db.long = message.location.longitude
-    print(f"Location = {db.lat}, {db.long}")
+    print(f"Got location : {db.lat}, {db.long}")
 
 
 @bot.message_handler(content_types=['photo'])
@@ -105,6 +105,7 @@ def photo(message):
     if decoded_img:
         codes = decoded_img[0].data.decode()
         bot.send_message(message.chat.id, f'QR codes: {codes}' )
+        print (f'Got code: {codes}')
         if codes[:7] == 'Comexys':
             db.qr_code = codes
             db.qr_time = time_str
@@ -123,6 +124,13 @@ def update_table(db):
     date = datetime.now().strftime(date_format)
     line = f'{db.user_name},{date}, {db.loc_time},{db.lat},{db.long},{db.qr_time},{db.qr_code}'
     tbl.append(line)
+
+
+@bot.message_handler(content_types=['document'])
+def document(message):
+    pass
+
+
 
 if __name__=='__main__':
     main()
