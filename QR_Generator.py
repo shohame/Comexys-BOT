@@ -1,7 +1,5 @@
-import cv2
 import pandas as pd
 import numpy as np
-from pyzbar import pyzbar
 import pyqrcode
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -19,9 +17,10 @@ def QR_Generator(csv_file_path):
         l = l[1]
         code = l['Producer']
         code += ',' + l['Product Name']
+        code += ',' + str(l['Frequency MHz'])
+        code += ',' + str(l['RF Channel'])
         code += ',' + str(l['RF Number'])
         code += ',' + str(l['Mac Address'])
-        code += ',' + str(l['RF Channel'])
         code += ',' + l['Production date']
 
         remarks = l['Remarks']
@@ -29,13 +28,13 @@ def QR_Generator(csv_file_path):
             remarks = ''
         code += ',' + str(remarks)
 
-        qrcode = pyqrcode.create('code')
+        qrcode = pyqrcode.create(code)
         qrcode.png('img.png')
 
-        plt.subplot(15, 12, i)
+        plt.subplot(10, 8, i)
         img = mpimg.imread('img.png')
         plt.imshow(img, cmap='gray')
-        plt.title(str(l['Mac Address']), y=0.8, fontsize=6)
+        plt.title('Comexys-'+str(l['RF Number']), y=0.9, fontsize=8)
         plt.axis('off')
         i = i + 1
 

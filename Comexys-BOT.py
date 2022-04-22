@@ -37,8 +37,8 @@ def main():
     bot.polling(none_stop=True)
 
 
-def save_csv(lines):
-    with open('try.csv', 'w') as f:
+def save_csv(file_name, lines):
+    with open(file_name, 'w') as f:
         for line in lines:
             f.write(line)
             f.write('\n')
@@ -64,8 +64,16 @@ def start(message):
 def download(message):
     print (tbl)
     print ('Done...')
-    save_csv(tbl)
-    fid = open('try.csv','r')
+
+    date_format = '%d/%m/%Y'
+    time_format = '%H:%M:%S'
+
+    csv_file_name = datetime.now().strftime('%d-%m-%Y - %H-%M-%S.csv')
+
+    save_csv(csv_file_name, tbl)
+
+
+    fid = open(csv_file_name,'r')
     bot.send_document(message.chat.id, fid)
     fid.close()
 
@@ -80,12 +88,14 @@ def handle_location(message):
     if user_id in db.d_users:
         ud = db.d_users[user_id]
     else:
-        ud = db.d_users[user_id] = user_data
+        ud = db.d_users[user_id] = user_data()
 
     ud.user_name = f'{message.chat.first_name} {message.chat.last_name}'
     ud.loc_time = datetime.now().strftime(time_format)
     ud.lat = message.location.latitude
     ud.long = message.location.longitude
+    # bot.send_message(message.chat.id, f"Got location : {ud.lat}, {ud.long}")
+
     print(f"Got location : {ud.lat}, {ud.long}")
 
 
@@ -131,8 +141,8 @@ def photo(message):
         bot.send_message(message.chat.id, 'Can''t read the QR code, please scan again')
 
 tbl = ['Contractor Name, Installation Date, Send Location time, Location X, Location Y,'+
-       'Send QR Time, Producer, Product Name, RF Number, Mac Address, Frequency MHz,'+
-       'RF Channel, Production date, Remarks']
+       'Send QR Time, Producer, Product Name, Frequency MHz, RF Channel, RF Number, Mac Address, '+
+       'Production date, Remarks']
 
 
 def update_table(ud):
