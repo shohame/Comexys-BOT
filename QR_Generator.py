@@ -47,11 +47,14 @@ def QR_Generator_to_PDF(csv_file_path):
     pp.close()
 
 
-def QR_Generator_Zebra_Print(csv_file_path):
+def str_trim(s):
+    return str(s).strip()
 
 
+def QR_Generator_Zebra_Print(file_path):
 
-    df = pd.read_csv(csv_file_path, skipinitialspace=True)
+ #   df = pd.read_csv(csv_file_path, skipinitialspace=True)
+    df = pd.read_excel(file_path)
 
     fig = plt.figure(figsize=(1.5, 1.5), dpi=640)
 
@@ -62,13 +65,13 @@ def QR_Generator_Zebra_Print(csv_file_path):
     i = 1
     for l in df.iterrows():
         l = l[1]
-        code = l['Producer']
-        code += ',' + l['Product Name']
-        code += ',' + str(l['Frequency MHz'])
-        code += ',' + str(l['RF Channel'])
-        code += ',' + str(l['RF Number'])
-        code += ',' + str(l['Mac Address'])
-        code += ',' + l['Production date']
+        code =        str_trim(l['Producer'])
+        code += ',' + str_trim(l['Product Name'])
+        code += ',' + str_trim(l['Frequency MHz'])
+        code += ',' + str_trim(l['RF Channel'])
+        code += ',' + str_trim(l['RF Number'])
+        code += ',' + str_trim(l['Mac Address'])
+        code += ',' + str_trim(l['Production date'])
 
         remarks = l['Remarks']
         if isinstance(remarks, float) and np.isnan(remarks):
@@ -109,7 +112,7 @@ def QR_Generator_Zebra_Print(csv_file_path):
         dst.paste(img, (w + 128, 0))
         img = dst
         img = img.resize((216 * 2 + 40, 216))
-#        img.show()
+      #  img.show()
         w, h = img.size
         data = img.tobytes()
         z.print_graphic(20, 0, w, h, data, 1)
@@ -119,4 +122,5 @@ if __name__=='__main__':
 #    QR_Generator_to_PDF("QR_Code_generator.csv")
 
 #   QR_Generator_test("QR_Code_generator.csv")
-   QR_Generator_Zebra_Print("QR_Code_generator.csv")
+   #QR_Generator_Zebra_Print("QR_Code_generator.csv")
+    QR_Generator_Zebra_Print("QR_Code_generator.xls")

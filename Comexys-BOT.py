@@ -13,6 +13,11 @@ from datetime import datetime
 
 date_format = '%d/%m/%Y'
 time_format = '%H:%M:%S'
+tbl_titles = ['Contractor Name, Installation Date, Send Location time, Location X, Location Y,' +
+       'Send QR Time, Producer, Product Name, Frequency MHz, RF Channel, RF Number, Mac Address, ' +
+       'Production date, Remarks']
+
+qr_tbl_titles = 'Producer,Product Name,RF Number,Mac Address,Frequency MHz,RF Channel,Production date,Remarks'
 
 class database:
     d_users = {}
@@ -62,7 +67,7 @@ def start(message):
 
 @bot.message_handler(commands=['download'])
 def download(message):
-    print (tbl)
+    print (tbl_titles)
     print ('Done...')
 
     date_format = '%d/%m/%Y'
@@ -70,7 +75,7 @@ def download(message):
 
     csv_file_name = datetime.now().strftime('%d-%m-%Y - %H-%M-%S.csv')
 
-    save_csv(csv_file_name, tbl)
+    save_csv(csv_file_name, tbl_titles)
 
 
     fid = open(csv_file_name,'r')
@@ -129,26 +134,31 @@ def photo(message):
     decoded_img = pyzbar.decode(image)
     if decoded_img:
         codes = decoded_img[0].data.decode()
-        bot.send_message(message.chat.id, f'QR codes: {codes}' )
+
         print (f'Got code: {codes}')
         if codes[:7] == 'Comexys':
             ud.qr_code = codes
             ud.qr_time = time_str
             update_table(ud)
+            codes_list = codes.split(',')
+            titles_list = qr_tbl_titles.split(',')
+            msg = 'QR codes:\n\n'
+            for title, code in zip(titles_list, codes_list):
+                msg += f'{title} : {code}\n'
+
+            bot.send_message(message.chat.id, msg)
+
         else:
             bot.send_message(message.chat.id, 'Unknown QR code, scan only Comexys QR code.')
     else:
         bot.send_message(message.chat.id, 'Can''t read the QR code, please scan again')
 
-tbl = ['Contractor Name, Installation Date, Send Location time, Location X, Location Y,'+
-       'Send QR Time, Producer, Product Name, Frequency MHz, RF Channel, RF Number, Mac Address, '+
-       'Production date, Remarks']
 
 
 def update_table(ud):
     date = datetime.now().strftime(date_format)
     line = f'{ud.user_name},{date}, {ud.loc_time},{ud.lat},{ud.long},{ud.qr_time},{ud.qr_code}'
-    tbl.append(line)
+    tbl_titles.append(line)
 
 
 @bot.message_handler(content_types=['document'])
