@@ -15,3 +15,5 @@ pip install pyqrcode
 pip install matplotlib
 
 pip install pypng
+
+pip install xlrd
